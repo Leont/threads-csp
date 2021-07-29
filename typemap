@@ -1,0 +1,6 @@
+TYPEMAP
+channel_t* T_CHANNEL
+
+INPUT
+T_CHANNEL
+	$var = sv_to_channel($arg)
