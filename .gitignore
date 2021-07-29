@@ -5,3 +5,9 @@
 *.tdy
 *.tar.gz
 threads-csp-*
+*.o
+lib/**/*.c
+Build
+_build
+blib
+MYMETA.*
