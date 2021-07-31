@@ -2,7 +2,8 @@
 #include "EXTERN.h"
 #include "perl.h"
 
-#include <stdatomic.h>
+#include "refcount.h"
+#include "values.h"
 
 #include "channel.h"
 
@@ -19,7 +20,7 @@ struct channel {
 	perl_mutex writer_mutex;
 	perl_cond  data_condvar;
 
-	atomic_size_t refcount;
+	refcount_t refcount;
 	enum state state;
 	SV* message;
 };
@@ -30,7 +31,7 @@ channel_t* channel_alloc(UV refcount) {
 	MUTEX_INIT(&ret->reader_mutex);
 	MUTEX_INIT(&ret->writer_mutex);
 	COND_INIT(&ret->data_condvar);
-	atomic_init(&ret->refcount, refcount);
+	refcount_init(&ret->refcount, refcount);
 	return ret;
 }
 
@@ -67,12 +68,7 @@ SV* S_channel_receive(pTHX_ channel_t* channel) {
 	else
 		assert(channel->state == HAS_WRITER);
 
-	CLONE_PARAMS params = { 0 };
-	params.flags = CLONEf_JOIN_IN;
-	SAVEPPTR(PL_ptr_table);
-	PL_ptr_table = ptr_table_new();
-	SAVEDESTRUCTOR_X(Perl_ptr_table_free, PL_ptr_table);
-	SV* result = sv_dup_inc(channel->message, &params);
+	SV* result = clone_value(channel->message);
 
 	channel->message = NULL;
 	channel->state = HAS_NOTHING;
@@ -85,7 +81,7 @@ SV* S_channel_receive(pTHX_ channel_t* channel) {
 }
 
 void channel_refcount_dec(channel_t* channel) {
-	if (atomic_fetch_sub_explicit(&channel->refcount, 1, memory_order_acq_rel) == 1) {
+	if (refcount_dec(&channel->refcount) == 1) {
 		COND_DESTROY(&channel->data_condvar);
 		MUTEX_DESTROY(&channel->writer_mutex);
 		MUTEX_DESTROY(&channel->reader_mutex);
@@ -101,7 +97,7 @@ static int channel_magic_destroy(pTHX_ SV*, MAGIC* magic) {
 
 static int channel_magic_dup(pTHX_ MAGIC* magic, CLONE_PARAMS* param) {
 	channel_t* channel = (channel_t*)magic->mg_ptr;
-	atomic_fetch_add_explicit(&channel->refcount, 1, memory_order_relaxed);
+	refcount_inc(&channel->refcount);
 	return 0;
 }
 
