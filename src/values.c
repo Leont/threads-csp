@@ -1,6 +1,8 @@
 #define PERL_NO_GET_CONTEXT
 #include <EXTERN.h>
 #include <perl.h>
+#define NEED_mg_findext
+#include "ppport.h"
 
 SV* S_clone_value(pTHX_ SV* original) {
 	dSP;
