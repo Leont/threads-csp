@@ -104,18 +104,9 @@ static int channel_magic_dup(pTHX_ MAGIC* magic, CLONE_PARAMS* param) {
 static const MGVTBL channel_magic = { 0, 0, 0, 0, channel_magic_destroy, 0, channel_magic_dup };
 
 SV* S_channel_to_sv(pTHX_ Channel* channel, SV* stash_name) {
-	SV* referent = newSV(0);
-	MAGIC* magic = sv_magicext(referent, NULL, PERL_MAGIC_ext, &channel_magic, (char*)channel, 0);
-	magic->mg_flags |= MGf_DUP;
-	return sv_bless(newRV_noinc(referent), gv_stashsv(stash_name, 0));
+	object_to_sv(channel, gv_stashsv(stash_name, 0), &channel_magic, MGf_DUP);
 }
 
 Channel* S_sv_to_channel(pTHX_ SV* sv) {
-	if (!sv_derived_from(sv, "threads::csp::channel"))
-		Perl_croak(aTHX_ "Object is not a threads::csp::channel");
-	MAGIC* magic = SvMAGICAL(SvRV(sv)) ? mg_findext(SvRV(sv), PERL_MAGIC_ext, &channel_magic) : NULL;
-	if (magic)
-		return (Channel*)magic->mg_ptr;
-	else
-		Perl_croak(aTHX_ "threads::csp::channel object is lacking magic");
+	return sv_to_object(sv, "threads::csp::channel", &channel_magic);
 }
