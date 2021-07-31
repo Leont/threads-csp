@@ -4,7 +4,6 @@
 #define NO_XSLOCKS
 #include "XSUB.h"
 
-#include "channel.h"
 #include "mthread.h"
 
 #ifdef WIN32
@@ -69,13 +68,19 @@ static void xs_init(pTHX) {
 	newXS((char*)"DynaLoader::boot_DynaLoader", boot_DynaLoader, (char*)__FILE__);
 }
 
+typedef struct mthread {
+	promise_t* input;
+	promise_t* output;
+} mthread;
+
 static void* run_thread(void* arg) {
 	static const char* argv[] = { "perl", "-Mthreads::csp", "-e", "0", NULL };
 	static const int argc = sizeof argv / sizeof *argv - 1;
 
 	thread_count_inc();
 
-	channel_t* channel = (channel_t*)arg;
+	mthread* thread = (mthread*)arg;
+	promise_t* output = thread->output;
 
 	PerlInterpreter* my_perl = perl_alloc();
 	perl_construct(my_perl);
@@ -83,8 +88,10 @@ static void* run_thread(void* arg) {
 	PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
 	perl_parse(my_perl, xs_init, argc, (char**)argv, NULL);
 
-	AV* to_run = (AV*)sv_2mortal(channel_receive(channel));
-	channel_refcount_dec(channel);
+	AV* to_run = (AV*)sv_2mortal(promise_get(thread->input));
+	promise_abandon(thread->input);
+	promise_refcount_dec(thread->input);
+	PerlMemShared_free(thread);
 
 	dXCPT;
 	XCPT_TRY_START {
@@ -92,7 +99,7 @@ static void* run_thread(void* arg) {
 		load_module(PERL_LOADMOD_NOIMPORT, SvREFCNT_inc(module), NULL);
 	} XCPT_TRY_END
 	XCPT_CATCH {
-		LEAVE;
+		promise_set_exception(output, ERRSV);
 	}
 	else {
 		dSP;
@@ -105,11 +112,15 @@ static void* run_thread(void* arg) {
 		PUTBACK;
 
 		SV** call_ptr = av_fetch(to_run, 1, FALSE);
-		call_sv(*call_ptr, G_VOID | G_EVAL | G_DISCARD);
+		call_sv(*call_ptr, G_SCALAR | G_EVAL);
+		SPAGAIN;
 
 		if (SvTRUE(ERRSV))
-			warn("Thread got error %s\n", SvPV_nolen(ERRSV));
+			promise_set_exception(output, ERRSV);
+		else
+			promise_set_value(output, POPs);
 	}
+	promise_refcount_dec(output);
 
 	perl_destruct(my_perl);
 	perl_free(my_perl);
@@ -119,13 +130,17 @@ static void* run_thread(void* arg) {
 	return NULL;
 }
 
-void thread_spawn(AV* to_run) {
+promise_t* thread_spawn(AV* to_run) {
 	static const size_t stack_size = 512 * 1024;
 
-	channel_t* channel = channel_alloc(2);
+	mthread* mthread = PerlMemShared_calloc(1, sizeof(mthread));
+	promise_t* input = promise_alloc(2);
+	mthread->input = input;
+	promise_t* output = promise_alloc(2);
+	mthread->output = output;
 
 #ifdef WIN32
-	CreateThread(NULL, (DWORD)stack_size, run_thread, (LPVOID)channel, STACK_SIZE_PARAM_IS_A_RESERVATION, NULL);
+	CreateThread(NULL, (DWORD)stack_size, run_thread, (LPVOID)mthread, STACK_SIZE_PARAM_IS_A_RESERVATION, NULL);
 
 #else
 	pthread_attr_t attr;
@@ -146,14 +161,16 @@ void thread_spawn(AV* to_run) {
 	/* Create the thread */
 	pthread_t thr;
 #ifdef OLD_PTHREADS_API
-	pthread_create(&thr, attr, run_thread, (void *)channel);
+	pthread_create(&thr, attr, run_thread, (void *)mthread);
 #else
-	pthread_create(&thr, &attr, run_thread, (void *)channel);
+	pthread_create(&thr, &attr, run_thread, (void *)mthread);
 #endif
 
 #endif
 
 	/* This blocks on the other thread, so must run last */
-	channel_send(channel, (SV*)to_run);
-	channel_refcount_dec(channel);
+	promise_set_value(input, (SV*)to_run);
+	promise_refcount_dec(input);
+
+	return output;
 }

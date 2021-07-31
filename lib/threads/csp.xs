@@ -13,9 +13,15 @@ MODULE = threads::csp              PACKAGE = threads::csp
 BOOT:
 	global_init(aTHX);
 
-void spawn(SV* class, SV* module, SV* function, ...)
+promise_t* spawn(SV* class, SV* module, SV* function, ...)
 	CODE:
-		thread_spawn(slurp_arguments(1));
+		RETVAL = thread_spawn(slurp_arguments(1));
+	OUTPUT:
+		RETVAL
+
+MODULE = threads::csp              PACKAGE = threads::csp::promise  PREFIX = promise_
+
+SV* promise_get(promise_t* promise)
 
 MODULE = threads::csp              PACKAGE = threads::csp::channel  PREFIX = channel_
 
