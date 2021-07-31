@@ -17,6 +17,10 @@ Promise* thread_spawn(SV* class, SV* module, SV* function, ...)
 	C_ARGS:
 		slurp_arguments(1)
 
+MODULE = threads::csp              PACKAGE = threads::csp::promise  PREFIX = promise_
+
+SV* promise_get(Promise* promise)
+
 MODULE = threads::csp              PACKAGE = threads::csp::channel  PREFIX = channel_
 
 SV* channel_new(SV* class)
