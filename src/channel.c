@@ -1,6 +1,7 @@
 #define PERL_NO_GET_CONTEXT
 #include "EXTERN.h"
 #include "perl.h"
+#include "ppport.h"
 
 #include "refcount.h"
 #include "values.h"
