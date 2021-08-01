@@ -6,6 +6,7 @@
 #include "ppport.h"
 
 #include "mthread.h"
+#include "trycatch.h"
 
 #ifdef WIN32
 #  include <windows.h>
@@ -75,13 +76,15 @@ typedef struct mthread {
 } mthread;
 
 static void* run_thread(void* arg) {
-	static const char* argv[] = { "perl", "-Mthreads::csp", "-e", "0", NULL };
+	static const char* argv[] = { "perl", "-e", "0", NULL };
 	static const int argc = sizeof argv / sizeof *argv - 1;
 
 	thread_count_inc();
 
 	mthread* thread = (mthread*)arg;
+	Promise* input = thread->input;
 	Promise* output = thread->output;
+	PerlMemShared_free(thread);
 
 	PerlInterpreter* my_perl = perl_alloc();
 	perl_construct(my_perl);
@@ -89,20 +92,16 @@ static void* run_thread(void* arg) {
 	PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
 	perl_parse(my_perl, xs_init, argc, (char**)argv, NULL);
 
-	AV* to_run = (AV*)sv_2mortal(promise_get(thread->input));
-	promise_abandon(thread->input);
-	promise_refcount_dec(thread->input);
-	PerlMemShared_free(thread);
+	TRY {
+		load_module(PERL_LOADMOD_NOIMPORT, newSVpvs("threads::csp"), NULL);
 
-	dXCPT;
-	XCPT_TRY_START {
+		AV* to_run = (AV*)sv_2mortal(promise_get(input));
+		promise_abandon(input);
+		promise_refcount_dec(input);
+
 		SV* module = *av_fetch(to_run, 0, FALSE);
 		load_module(PERL_LOADMOD_NOIMPORT, SvREFCNT_inc(module), NULL);
-	} XCPT_TRY_END
-	XCPT_CATCH {
-		promise_set_exception(output, ERRSV);
-	}
-	else {
+
 		dSP;
 		PUSHMARK(SP);
 		IV len = av_len(to_run) + 1;
@@ -113,13 +112,12 @@ static void* run_thread(void* arg) {
 		PUTBACK;
 
 		SV** call_ptr = av_fetch(to_run, 1, FALSE);
-		call_sv(*call_ptr, G_SCALAR | G_EVAL);
+		call_sv(*call_ptr, G_SCALAR);
 		SPAGAIN;
-
-		if (SvTRUE(ERRSV))
-			promise_set_exception(output, ERRSV);
-		else
-			promise_set_value(output, POPs);
+		promise_set_value(output, POPs);
+	}
+	CATCH {
+		promise_set_exception(output, ERRSV);
 	}
 	promise_refcount_dec(output);
 
