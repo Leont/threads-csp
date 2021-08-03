@@ -8,6 +8,7 @@
 #include "mthread.h"
 #include "trycatch.h"
 #include "refcount.h"
+#include "values.h"
 
 #ifdef WIN32
 #  include <windows.h>
@@ -37,8 +38,7 @@ void global_init(pTHX) {
 	if (!PL_perl_destruct_level)
 		PL_perl_destruct_level = 1;
 
-	HV* channel_stash = gv_stashpvs("threads::csp::channel", GV_ADD);
-	SvFLAGS(channel_stash) |= SVphv_CLONEABLE;
+	mark_clonable_const("threads::csp::channel");
 }
 
 static void thread_count_inc() {
