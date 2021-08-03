@@ -1,6 +1,7 @@
 Revision history for Thread-Csp
 
 {{$NEXT}}
+          - Allow for passing of threads::shared values
 
 0.008     2022-02-24 17:08:54+01:00 Europe/Amsterdam
           - Revert using socketpair

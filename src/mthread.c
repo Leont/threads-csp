@@ -28,6 +28,14 @@ void global_init(pTHX) {
 	}
 	if (!PL_perl_destruct_level)
 		PL_perl_destruct_level = 1;
+
+	SV* threads = get_sv("threads::threads", GV_ADD);
+	if (SvTRUE(threads))
+		Perl_warn(aTHX_ "Mixing threads.pm and threads::csp is not advisable");
+	else
+		sv_setpvs(threads, "threads::csp");
+
+	mark_clonable_pvs("threads::shared::tie");
 }
 
 static void thread_count_inc() {
