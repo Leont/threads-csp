@@ -113,7 +113,7 @@ void promise_refcount_dec(promise_t* promise) {
 	}
 }
 
-static int promise_destroy(pTHX_ SV*, MAGIC* magic) {
+static int promise_destroy(pTHX_ SV* sv, MAGIC* magic) {
 	promise_t* promise = (promise_t*)magic->mg_ptr;
 	promise_abandon(promise);
 	promise_refcount_dec(promise);

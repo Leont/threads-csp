@@ -91,7 +91,7 @@ void channel_refcount_dec(channel_t* channel) {
 	}
 }
 
-static int channel_magic_destroy(pTHX_ SV*, MAGIC* magic) {
+static int channel_magic_destroy(pTHX_ SV* sv, MAGIC* magic) {
 	channel_refcount_dec((channel_t*)magic->mg_ptr);
 	return 0;
 }
