@@ -20,3 +20,7 @@ This represents the return value of a thread, as return by spawn. B<This class i
 =method get()
 
 This waits for the thread to finish, and will either return its value, or throw the exception that it died with. It may be called any number of times.
+
+=method is_finished()
+
+This returns true if the promise is finished.
