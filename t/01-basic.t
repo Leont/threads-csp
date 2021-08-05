@@ -46,4 +46,13 @@ subtest 'Fourth', sub {
 	is($buffer, "1", 'Event as expected');
 };
 
+subtest 'Fifth', sub {
+	my $q = threads::csp::channel->new;
+	my $r = threads::csp->spawn('Basic', 'Basic::closed', $q);
+
+	$q->send(6);
+	$q->send(7);
+	$q->close;
+	is($r->get(), 13);
+};
 done_testing();

@@ -36,3 +36,5 @@ void channel_send(Channel* channel, SV* argument)
 SV* channel_receive(Channel* channel)
 
 void channel_set_notify(Channel* channel, OutputStream stream, SV* value)
+
+void channel_close(Channel* channel)

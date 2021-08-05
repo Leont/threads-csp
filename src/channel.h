@@ -7,6 +7,7 @@ SV* S_channel_receive(pTHX_ Channel* channel);
 #define channel_receive(channel) S_channel_receive(aTHX_ channel)
 void S_channel_set_notify(pTHX_ Channel*, PerlIO*, SV*);
 #define channel_set_notify(channel, handle, value) S_channel_set_notify(aTHX_ channel, handle, value)
+void channel_close(Channel*);
 
 void channel_refcount_dec(Channel* channel);
 
