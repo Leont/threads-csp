@@ -1,3 +1,4 @@
 #include "promise.h"
 void global_init(pTHX);
-Promise* thread_spawn(AV* to_run);
+Promise* S_thread_spawn(pTHX_ AV* to_run);
+#define thread_spawn(to_run) S_thread_spawn(aTHX_ to_run)

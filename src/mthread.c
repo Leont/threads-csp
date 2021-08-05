@@ -85,21 +85,24 @@ static void* run_thread(void* arg) {
 		promise_abandon(input);
 		promise_refcount_dec(input);
 
+		SvREFCNT_dec(GvAV(PL_incgv));
+		GvAV(PL_incgv) = (AV*)*av_fetch(to_run, 0, FALSE);
+
 		load_module(PERL_LOADMOD_NOIMPORT, newSVpvs("threads::csp"), NULL);
 
-		SV* module = *av_fetch(to_run, 0, FALSE);
+		SV* module = *av_fetch(to_run, 1, FALSE);
 		load_module(PERL_LOADMOD_NOIMPORT, SvREFCNT_inc(module), NULL);
 
 		dSP;
 		PUSHMARK(SP);
 		IV len = av_len(to_run) + 1;
-		for(int i = 2; i < len; i++) {
+		for(int i = 3; i < len; i++) {
 			SV** entry = av_fetch(to_run, i, FALSE);
 			XPUSHs(*entry);
 		}
 		PUTBACK;
 
-		SV** call_ptr = av_fetch(to_run, 1, FALSE);
+		SV** call_ptr = av_fetch(to_run, 2, FALSE);
 		call_sv(*call_ptr, G_SCALAR);
 		SPAGAIN;
 		promise_set_value(output, POPs);
@@ -117,8 +120,24 @@ static void* run_thread(void* arg) {
 	return NULL;
 }
 
-Promise* thread_spawn(AV* to_run) {
+AV* S_clone_INC(pTHX) {
+	AV* inc = GvAVn(PL_incgv);
+	IV len = av_len(inc) + 1;
+	AV* copy = newAV();
+	for (int i = 0; i < len; ++i) {
+		SV** entry = av_fetch(inc, i, FALSE);
+		if (entry && *entry && !SvROK(*entry))
+			av_push(copy, SvREFCNT_inc(*entry));
+	}
+	return copy;
+}
+#define clone_INC() S_clone_INC(aTHX)
+
+Promise* S_thread_spawn(pTHX_ AV* to_run) {
 	static const size_t stack_size = 512 * 1024;
+
+	av_unshift(to_run, 1);
+	av_store(to_run, 0, (SV*)clone_INC());
 
 	mthread* mthread = PerlMemShared_calloc(1, sizeof(mthread));
 	Promise* input = promise_alloc(2);
