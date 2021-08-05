@@ -24,3 +24,7 @@ This waits for the thread to finish, and will either return its value, or throw 
 =method is_finished()
 
 This returns true if the promise is finished.
+
+=method set_notify($handle, $value)
+
+This will cause C<$value> to be written to $handle when the promise finishes, unless it's already being waited upon.

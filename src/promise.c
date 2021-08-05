@@ -5,6 +5,7 @@
 
 #include "refcount.h"
 #include "values.h"
+#include "notification.h"
 
 #include "promise.h"
 
@@ -18,6 +19,7 @@ struct promise {
 	enum value_type type;
 	enum state state;
 	Refcount refcount;
+	Notification notification;
 };
 
 Promise* promise_alloc(UV refcount) {
@@ -25,6 +27,7 @@ Promise* promise_alloc(UV refcount) {
 	MUTEX_INIT(&result->mutex);
 	COND_INIT(&result->condvar);
 	refcount_init(&result->refcount, refcount);
+	notification_init(&result->notification);
 	return result;
 }
 
@@ -61,6 +64,7 @@ SV* S_promise_get(pTHX_ Promise* promise) {
 
 void S_promise_abandon(pTHX_ Promise* promise) {
 	MUTEX_LOCK(&promise->mutex);
+	notification_unset(&promise->notification);
 	switch(promise->state) {
 		case HAS_WRITER:
 			COND_SIGNAL(&promise->condvar);
@@ -89,6 +93,7 @@ static void promise_set(Promise* promise, SV* value, enum value_type type) {
 		else {
 			assert(promise->state == HAS_NOTHING);
 			promise->state = HAS_WRITER;
+			notification_trigger(&promise->notification);
 		}
 
 		do COND_WAIT(&promise->condvar, &promise->mutex);
@@ -128,6 +133,30 @@ static int promise_destroy(pTHX_ SV* sv, MAGIC* magic) {
 }
 
 static const MGVTBL promise_magic = { 0, 0, 0, 0, promise_destroy };
+
+static PerlIO* S_sv_to_handle(pTHX_ SV* handle) {
+	if (!SvROK(handle) || SvTYPE(SvRV(handle)) != SVt_PVGV)
+		Perl_croak(aTHX_ "");
+
+	return IoOFP(sv_2io(handle));
+}
+#define sv_to_handle(handle) S_sv_to_handle(aTHX_ handle)
+
+void S_promise_set_notify(pTHX_ SV* promise_sv, SV* handle, SV* value) {
+	MAGIC* magic = sv_to_magic(promise_sv, "threads::csp::promise", &promise_magic);
+	Promise* promise = magic_to_object(magic);
+
+	MUTEX_LOCK(&promise->mutex);
+
+	notification_set(&promise->notification, sv_to_handle(handle), value);
+	if (promise->state == HAS_WRITER || promise->state == DONE)
+		notification_trigger(&promise->notification);
+
+	MUTEX_UNLOCK(&promise->mutex);
+
+	magic->mg_obj = SvREFCNT_inc(handle);
+	magic->mg_flags |= MGf_REFCOUNTED;
+}
 
 SV* S_promise_to_sv(pTHX_ Promise* promise) {
 	return object_to_sv(promise, gv_stashpvs("threads::csp::promise", 0), &promise_magic, 0);

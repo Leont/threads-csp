@@ -23,6 +23,8 @@ SV* promise_get(Promise* promise)
 
 bool promise_is_finished(Promise* promise)
 
+void promise_set_notify(SV* promise, SV* handle, SV* value)
+
 MODULE = threads::csp              PACKAGE = threads::csp::channel  PREFIX = channel_
 
 SV* channel_new(SV* class)
