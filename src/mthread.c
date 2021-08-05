@@ -17,27 +17,22 @@
 #endif
 
 static perl_mutex counter_mutex;
-static perl_cond counter_condvar;
 static UV thread_counter;
 
 static int (*old_hook)(pTHX);
 
 static int S_threadhook(pTHX) {
 	MUTEX_LOCK(&counter_mutex);
-	while (thread_counter > 1)
-		COND_WAIT(&counter_condvar, &counter_mutex);
-
+	int result = thread_counter > 1 ? 1 : old_hook(aTHX);
 	MUTEX_UNLOCK(&counter_mutex);
 	MUTEX_DESTROY(&counter_mutex);
-	COND_DESTROY(&counter_condvar);
 
-	return old_hook(aTHX);
+	return result;
 }
 
 void global_init(pTHX) {
 	if (thread_counter == 0) {
 		MUTEX_INIT(&counter_mutex);
-		COND_INIT(&counter_condvar);
 		thread_counter = 1;
 
 		old_hook = PL_threadhook;
@@ -58,8 +53,7 @@ static void thread_count_inc() {
 
 static void thread_count_dec() {
 	MUTEX_LOCK(&counter_mutex);
-	if (--thread_counter == 0);
-		COND_SIGNAL(&counter_condvar);
+	--thread_counter;
 	MUTEX_UNLOCK(&counter_mutex);
 }
 
