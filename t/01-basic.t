@@ -6,7 +6,7 @@ use warnings;
 use Test::More;
 use threads::csp;
 
-$ENV{PERL5LIB} = join ':', 't/lib', split ':', $ENV{PERL5LIB};
+use lib 't/lib';
 
 subtest 'First', sub {
 	my $q = threads::csp::channel->new;
