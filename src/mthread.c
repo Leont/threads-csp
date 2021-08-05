@@ -7,6 +7,7 @@
 
 #include "mthread.h"
 #include "trycatch.h"
+#include "refcount.h"
 
 #ifdef WIN32
 #  include <windows.h>
@@ -16,24 +17,19 @@
 #  include <thread.h>
 #endif
 
-static perl_mutex counter_mutex;
-static UV thread_counter;
+static Refcount thread_counter;
 
 static int (*old_hook)(pTHX);
 
 static int S_threadhook(pTHX) {
-	MUTEX_LOCK(&counter_mutex);
 	int result = thread_counter > 1 ? 1 : old_hook(aTHX);
-	MUTEX_UNLOCK(&counter_mutex);
-	MUTEX_DESTROY(&counter_mutex);
-
+	refcount_destroy(&result);
 	return result;
 }
 
 void global_init(pTHX) {
-	if (thread_counter == 0) {
-		MUTEX_INIT(&counter_mutex);
-		thread_counter = 1;
+	if (!refcount_inited(&thread_counter)) {
+		refcount_init(&thread_counter, 1);
 
 		old_hook = PL_threadhook;
 		PL_threadhook = S_threadhook;
@@ -46,15 +42,11 @@ void global_init(pTHX) {
 }
 
 static void thread_count_inc() {
-	MUTEX_LOCK(&counter_mutex);
-	thread_counter++;
-	MUTEX_UNLOCK(&counter_mutex);
+	refcount_inc(&thread_counter);
 }
 
 static void thread_count_dec() {
-	MUTEX_LOCK(&counter_mutex);
-	--thread_counter;
-	MUTEX_UNLOCK(&counter_mutex);
+	refcount_dec(&thread_counter);
 }
 
 void boot_DynaLoader(pTHX_ CV* cv);
