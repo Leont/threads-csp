@@ -5,6 +5,7 @@
 
 #include "refcount.h"
 #include "values.h"
+#include "notification.h"
 
 #include "channel.h"
 
@@ -24,6 +25,7 @@ struct channel {
 	Refcount refcount;
 	enum state state;
 	SV* message;
+	Notification notification;
 };
 
 Channel* channel_alloc(UV refcount) {
@@ -33,6 +35,7 @@ Channel* channel_alloc(UV refcount) {
 	MUTEX_INIT(&ret->writer_mutex);
 	COND_INIT(&ret->data_condvar);
 	refcount_init(&ret->refcount, refcount);
+	notification_init(&ret->notification);
 	return ret;
 }
 
@@ -63,6 +66,7 @@ SV* S_channel_receive(pTHX_ Channel* channel) {
 
 	if (channel->state == HAS_NOTHING) {
 		channel->state = HAS_READER;
+		notification_trigger(&channel->notification);
 		do COND_WAIT(&channel->data_condvar, &channel->data_mutex);
 		while (channel->state != HAS_MESSAGE);
 	}
@@ -79,6 +83,16 @@ SV* S_channel_receive(pTHX_ Channel* channel) {
 	MUTEX_UNLOCK(&channel->reader_mutex);
 
 	return result;
+}
+
+void S_channel_set_notify(pTHX_ Channel* channel, PerlIO* handle, SV* value) {
+	MUTEX_LOCK(&channel->data_mutex);
+
+	notification_set(&channel->notification, handle, value);
+	if (channel->state == HAS_WRITER)
+		notification_trigger(&channel->notification);
+
+	MUTEX_UNLOCK(&channel->data_mutex);
 }
 
 void channel_refcount_dec(Channel* channel) {

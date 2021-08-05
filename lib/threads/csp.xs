@@ -8,6 +8,8 @@
 
 #define slurp_arguments(offset) av_make(items - offset, PL_stack_base + ax + offset)
 
+typedef PerlIO* OutputStream;
+
 MODULE = threads::csp              PACKAGE = threads::csp  PREFIX = thread_
 
 BOOT:
@@ -32,3 +34,5 @@ SV* channel_new(SV* class)
 void channel_send(Channel* channel, SV* argument)
 
 SV* channel_receive(Channel* channel)
+
+void channel_set_notify(Channel* channel, OutputStream stream, SV* value)
