@@ -13,7 +13,7 @@
  * Message channels
  */
 
-enum state { HAS_NOTHING, HAS_READER, HAS_WRITER, HAS_MESSAGE };
+enum state { HAS_NOTHING, HAS_READER, HAS_WRITER, HAS_MESSAGE, CLOSED };
 static const char* state_names[] = { "nothing", "has-reader", "has-writer", "has-message" };
 
 struct channel {
@@ -54,7 +54,7 @@ void channel_send(Channel* channel, SV* message) {
 	}
 
 	do COND_WAIT(&channel->data_condvar, &channel->data_mutex);
-	while (channel->state != HAS_NOTHING && channel->state != HAS_READER);
+	while (channel->state != HAS_NOTHING && channel->state != HAS_READER && channel->state != CLOSED);
 
 	MUTEX_UNLOCK(&channel->data_mutex);
 	MUTEX_UNLOCK(&channel->writer_mutex);
@@ -68,15 +68,20 @@ SV* S_channel_receive(pTHX_ Channel* channel) {
 		channel->state = HAS_READER;
 		notification_trigger(&channel->notification);
 		do COND_WAIT(&channel->data_condvar, &channel->data_mutex);
-		while (channel->state != HAS_MESSAGE);
+		while (channel->state != HAS_MESSAGE && channel->state != CLOSED);
 	}
 	else
-		assert(channel->state == HAS_WRITER);
+		assert(channel->state == HAS_WRITER || channel->state == CLOSED);
 
-	SV* result = clone_value(channel->message);
+	SV* result;
+	if (channel->state != CLOSED) {
+		result = clone_value(channel->message);
+		channel->state = HAS_NOTHING;
+	}
+	else
+		result = &PL_sv_undef;
 
 	channel->message = NULL;
-	channel->state = HAS_NOTHING;
 	COND_SIGNAL(&channel->data_condvar);
 
 	MUTEX_UNLOCK(&channel->data_mutex);
@@ -91,6 +96,15 @@ void S_channel_set_notify(pTHX_ Channel* channel, PerlIO* handle, SV* value) {
 	notification_set(&channel->notification, handle, value);
 	if (channel->state == HAS_WRITER)
 		notification_trigger(&channel->notification);
+
+	MUTEX_UNLOCK(&channel->data_mutex);
+}
+
+void channel_close(Channel* channel) {
+	MUTEX_LOCK(&channel->data_mutex);
+
+	channel->state = CLOSED;
+	COND_SIGNAL(&channel->data_condvar);
 
 	MUTEX_UNLOCK(&channel->data_mutex);
 }

@@ -40,3 +40,7 @@ This receives a value from the channel. It will block until another thread is pr
 =method set_notify($handle, $value)
 
 This will cause C<$value> to be written to C<$handle> whenever a new value becomes available, unless it's already being read.
+
+=method close()
+
+This will close the queue. Any C<receive> will now return undef, and any write is ignored.

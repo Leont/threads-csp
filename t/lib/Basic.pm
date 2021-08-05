@@ -10,4 +10,13 @@ sub basic {
 	13;
 }
 
+sub closed {
+	my $q = shift;
+	my $result = 0;
+	while (my $next = $q->receive) {
+		$result += $next;
+	}
+	return $result;
+}
+
 1;
