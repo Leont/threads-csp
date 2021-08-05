@@ -5,6 +5,7 @@
 
 #include "refcount.h"
 #include "values.h"
+#include "notification.h"
 
 #include "promise.h"
 
@@ -18,6 +19,7 @@ struct promise {
 	enum value_type type;
 	enum state state;
 	Refcount refcount;
+	Notification notification;
 };
 
 Promise* promise_alloc(UV refcount) {
@@ -25,6 +27,7 @@ Promise* promise_alloc(UV refcount) {
 	MUTEX_INIT(&result->mutex);
 	COND_INIT(&result->condvar);
 	refcount_init(&result->refcount, refcount);
+	notification_init(&result->notification);
 	return result;
 }
 
@@ -61,6 +64,7 @@ SV* S_promise_get(pTHX_ Promise* promise) {
 
 void S_promise_abandon(pTHX_ Promise* promise) {
 	MUTEX_LOCK(&promise->mutex);
+	notification_unset(&promise->notification);
 	switch(promise->state) {
 		case HAS_WRITER:
 			COND_SIGNAL(&promise->condvar);
@@ -89,6 +93,7 @@ static void promise_set(Promise* promise, SV* value, enum value_type type) {
 		else {
 			assert(promise->state == HAS_NOTHING);
 			promise->state = HAS_WRITER;
+			notification_trigger(&promise->notification);
 		}
 
 		do COND_WAIT(&promise->condvar, &promise->mutex);
@@ -109,6 +114,16 @@ bool promise_is_finished(Promise* promise) {
 	bool result = promise->state == DONE || promise->state == HAS_WRITER;
 	MUTEX_UNLOCK(&promise->mutex);
 	return result;
+}
+
+void S_promise_set_notify(pTHX_ Promise* promise, PerlIO* handle, SV* value) {
+	MUTEX_LOCK(&promise->mutex);
+
+	notification_set(&promise->notification, handle, value);
+	if (promise->state == HAS_WRITER || promise->state == DONE)
+		notification_trigger(&promise->notification);
+
+	MUTEX_UNLOCK(&promise->mutex);
 }
 
 void promise_refcount_dec(Promise* promise) {

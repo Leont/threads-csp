@@ -33,4 +33,17 @@ subtest 'Third', sub {
 	like($@, qr/Can't locate NonExistent.pm in \@INC/);
 };
 
+subtest 'Fourth', sub {
+	my $q = threads::csp::channel->new;
+	my $r = threads::csp->spawn('Basic', 'Basic::basic', $q, 7);
+
+	pipe my $in, my $out or die;
+	$r->set_notify($out, "1");
+	ok(!$r->is_finished, 'is not finished');
+	$q->send(1);
+	$q->receive;
+	read $in, my $buffer, 1 or die;
+	is($buffer, "1", 'Event as expected');
+};
+
 done_testing();

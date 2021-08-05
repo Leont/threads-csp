@@ -8,6 +8,8 @@
 
 #define slurp_arguments(offset) av_make(items - offset, PL_stack_base + ax + offset)
 
+typedef PerlIO* OutputStream;
+
 MODULE = threads::csp              PACKAGE = threads::csp  PREFIX = thread_
 
 BOOT:
@@ -22,6 +24,8 @@ MODULE = threads::csp              PACKAGE = threads::csp::promise  PREFIX = pro
 SV* promise_get(Promise* promise)
 
 bool promise_is_finished(Promise* promise)
+
+void promise_set_notify(Promise* promise, OutputStream handle, SV* value)
 
 MODULE = threads::csp              PACKAGE = threads::csp::channel  PREFIX = channel_
 
