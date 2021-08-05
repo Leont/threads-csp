@@ -21,6 +21,8 @@ MODULE = threads::csp              PACKAGE = threads::csp::promise  PREFIX = pro
 
 SV* promise_get(Promise* promise)
 
+bool promise_is_finished(Promise* promise)
+
 MODULE = threads::csp              PACKAGE = threads::csp::channel  PREFIX = channel_
 
 SV* channel_new(SV* class)

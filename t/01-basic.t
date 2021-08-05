@@ -12,11 +12,13 @@ subtest 'First', sub {
 	my $q = threads::csp::channel->new;
 	my $r = threads::csp->spawn('Basic', 'Basic::basic', $q, 7);
 
+	ok(!$r->is_finished, 'is not finished');
 	$q->send(6);
 	is($q->receive, 42, 'product is correct');
 
 	is($r->get, 13, 'returns 13');
 	is($r->get, 13, 'returns 13 again');
+	ok($r->is_finished, 'is finished');
 };
 
 subtest 'Second', sub {

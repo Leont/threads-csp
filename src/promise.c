@@ -104,6 +104,13 @@ void promise_set_exception(Promise* promise, SV* value) {
 	promise_set(promise, value, EXCEPTION);
 }
 
+bool promise_is_finished(Promise* promise) {
+	MUTEX_LOCK(&promise->mutex);
+	bool result = promise->state == DONE || promise->state == HAS_WRITER;
+	MUTEX_UNLOCK(&promise->mutex);
+	return result;
+}
+
 void promise_refcount_dec(Promise* promise) {
 	if (refcount_dec(&promise->refcount) == 1) {
 		COND_DESTROY(&promise->condvar);
