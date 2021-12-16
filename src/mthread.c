@@ -82,7 +82,6 @@ static void* run_thread(void* arg) {
 		mark_clonable_pvs("threads::csp::channel");
 
 		AV* to_run = (AV*)sv_2mortal(promise_get(input));
-		promise_abandon(input);
 		promise_refcount_dec(input);
 
 		SvREFCNT_dec(GvAV(PL_incgv));

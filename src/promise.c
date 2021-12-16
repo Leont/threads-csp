@@ -15,6 +15,7 @@ enum value_type { VALUE, EXCEPTION };
 struct promise {
 	perl_mutex mutex;
 	perl_cond condvar;
+	PerlInterpreter* owner;
 	SV* value;
 	enum value_type type;
 	enum state state;
@@ -43,6 +44,7 @@ SV* S_promise_get(pTHX_ Promise* promise) {
 		case HAS_WRITER:
 			promise->value = clone_value(promise->value);
 			promise->state = DONE;
+			promise->owner = aTHX;
 			COND_SIGNAL(&promise->condvar);
 		case DONE:
 			result = SvREFCNT_inc(promise->value);
@@ -60,23 +62,6 @@ SV* S_promise_get(pTHX_ Promise* promise) {
 		croak_sv(result);
 	else
 		return result;
-}
-
-void S_promise_abandon(pTHX_ Promise* promise) {
-	MUTEX_LOCK(&promise->mutex);
-	notification_unset(&promise->notification);
-	switch(promise->state) {
-		case HAS_WRITER:
-			COND_SIGNAL(&promise->condvar);
-		case HAS_NOTHING:
-			promise->state = ABANDONED;
-			break;
-
-		case DONE:
-			SvREFCNT_dec(promise->value);
-			break;
-	}
-	MUTEX_UNLOCK(&promise->mutex);
 }
 
 static void promise_set(Promise* promise, SV* value, enum value_type type) {
@@ -127,7 +112,22 @@ void promise_refcount_dec(Promise* promise) {
 
 static int promise_destroy(pTHX_ SV* sv, MAGIC* magic) {
 	Promise* promise = (Promise*)magic->mg_ptr;
-	promise_abandon(promise);
+	MUTEX_LOCK(&promise->mutex);
+	if (promise->owner == aTHX) {
+		notification_unset(&promise->notification);
+		switch(promise->state) {
+			case HAS_WRITER:
+				COND_SIGNAL(&promise->condvar);
+			case HAS_NOTHING:
+				promise->state = ABANDONED;
+				break;
+
+			case DONE:
+				SvREFCNT_dec(promise->value);
+				break;
+		}
+	}
+	MUTEX_UNLOCK(&promise->mutex);
 	promise_refcount_dec(promise);
 	return 0;
 }
