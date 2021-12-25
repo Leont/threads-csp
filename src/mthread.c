@@ -95,7 +95,8 @@ static void* run_thread(void* arg) {
 		dSP;
 		PUSHMARK(SP);
 		IV len = av_len(to_run) + 1;
-		for(int i = 3; i < len; i++) {
+		int i;
+		for(i = 3; i < len; i++) {
 			SV** entry = av_fetch(to_run, i, FALSE);
 			XPUSHs(*entry);
 		}
@@ -123,7 +124,8 @@ AV* S_clone_INC(pTHX) {
 	AV* inc = GvAVn(PL_incgv);
 	IV len = av_len(inc) + 1;
 	AV* copy = newAV();
-	for (int i = 0; i < len; ++i) {
+	int i;
+	for (i = 0; i < len; ++i) {
 		SV** entry = av_fetch(inc, i, FALSE);
 		if (entry && *entry && !SvROK(*entry))
 			av_push(copy, SvREFCNT_inc(*entry));
