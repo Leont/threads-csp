@@ -1,11 +1,11 @@
-package threads::csp::promise;
+package Thread::Csp::Promise;
 
 use strict;
 use warnings;
 
 use 5.008001;
 
-use threads::csp;
+use Thread::Csp;
 
 1;
 

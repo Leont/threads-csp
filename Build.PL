@@ -9,7 +9,7 @@ if (not $Config{useithreads}) {
 }
 
 my $builder = Module::Build->new(
-  module_name  => 'threads::csp',
+  module_name  => 'Thread::Csp',
   c_source     => 'src',
 ##{ $plugin->get_prereqs ##}
 );

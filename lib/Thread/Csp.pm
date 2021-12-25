@@ -1,4 +1,4 @@
-package threads::csp;
+package Thread::Csp;
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use warnings;
 use 5.008001;
 
 use XSLoader;
-XSLoader::load('threads::csp');
+XSLoader::load('Thread::Csp');
 
 1;
 
@@ -17,10 +17,10 @@ __END__
 =head1 SYNOPSIS
 
  # in script.pl
- use threads::csp;
- my $input = threads::csp::channel->new;
- my $output = threads::csp::channel->new;
- threads::csp->spawn('Module', 'Module::function', $input, $output);
+ use Thread::Csp;
+ my $input = Thread::Csp::channel->new;
+ my $output = Thread::Csp::channel->new;
+ Thread::Csp->spawn('Module', 'Module::function', $input, $output);
 
  while (<>) {
      $input->send($_);

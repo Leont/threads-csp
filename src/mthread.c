@@ -35,7 +35,7 @@ void global_init(pTHX) {
 		old_hook = PL_threadhook;
 		PL_threadhook = S_threadhook;
 
-		mark_clonable_pvs("threads::csp::channel");
+		mark_clonable_pvs("Thread::Csp::Channel");
 	}
 	if (!PL_perl_destruct_level)
 		PL_perl_destruct_level = 1;
@@ -79,7 +79,7 @@ static void* run_thread(void* arg) {
 	perl_parse(my_perl, xs_init, argc, (char**)argv, NULL);
 
 	TRY {
-		mark_clonable_pvs("threads::csp::channel");
+		mark_clonable_pvs("Thread::Csp::Channel");
 
 		AV* to_run = (AV*)sv_2mortal(promise_get(input));
 		promise_refcount_dec(input);
@@ -87,7 +87,7 @@ static void* run_thread(void* arg) {
 		SvREFCNT_dec(GvAV(PL_incgv));
 		GvAV(PL_incgv) = (AV*)*av_fetch(to_run, 0, FALSE);
 
-		load_module(PERL_LOADMOD_NOIMPORT, newSVpvs("threads::csp"), NULL);
+		load_module(PERL_LOADMOD_NOIMPORT, newSVpvs("Thread::Csp"), NULL);
 
 		SV* module = *av_fetch(to_run, 1, FALSE);
 		load_module(PERL_LOADMOD_NOIMPORT, SvREFCNT_inc(module), NULL);

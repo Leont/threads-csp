@@ -4,13 +4,13 @@ use strict;
 use warnings;
 
 use Test::More;
-use threads::csp;
+use Thread::Csp;
 
 use lib 't/lib';
 
 subtest 'First', sub {
-	my $q = threads::csp::channel->new;
-	my $r = threads::csp->spawn('Basic', 'Basic::basic', $q, 7);
+	my $q = Thread::Csp::Channel->new;
+	my $r = Thread::Csp->spawn('Basic', 'Basic::basic', $q, 7);
 
 	ok(!$r->is_finished, 'is not finished');
 	$q->send(6);
@@ -22,20 +22,20 @@ subtest 'First', sub {
 };
 
 subtest 'Second', sub {
-	my $r = threads::csp->spawn('Basic', 'Basic::non_existent');
+	my $r = Thread::Csp->spawn('Basic', 'Basic::non_existent');
 	my $val = eval { $r->get };
 	like($@, qr/Undefined subroutine &Basic::non_existent called./);
 };
 
 subtest 'Third', sub {
-	my $r = threads::csp->spawn('NonExistent', 'Basic::one');
+	my $r = Thread::Csp->spawn('NonExistent', 'Basic::one');
 	my $val = eval { $r->get };
 	like($@, qr/Can't locate NonExistent.pm in \@INC/);
 };
 
 subtest 'Fourth', sub {
-	my $q = threads::csp::channel->new;
-	my $r = threads::csp->spawn('Basic', 'Basic::basic', $q, 7);
+	my $q = Thread::Csp::Channel->new;
+	my $r = Thread::Csp->spawn('Basic', 'Basic::basic', $q, 7);
 
 	pipe my $in, my $out or die;
 	$r->set_notify($out, "1");
@@ -47,8 +47,8 @@ subtest 'Fourth', sub {
 };
 
 subtest 'Fifth', sub {
-	my $q = threads::csp::channel->new;
-	my $r = threads::csp->spawn('Basic', 'Basic::closed', $q);
+	my $q = Thread::Csp::Channel->new;
+	my $r = Thread::Csp->spawn('Basic', 'Basic::closed', $q);
 
 	$q->send(6);
 	$q->send(7);

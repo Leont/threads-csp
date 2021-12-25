@@ -137,5 +137,5 @@ SV* S_channel_to_sv(pTHX_ Channel* channel, SV* stash_name) {
 }
 
 Channel* S_sv_to_channel(pTHX_ SV* sv) {
-	return sv_to_object(sv, "threads::csp::channel", &channel_magic);
+	return sv_to_object(sv, "Thread::Csp::Channel", &channel_magic);
 }
