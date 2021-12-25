@@ -26,8 +26,8 @@ SV* S_object_to_sv(pTHX_ void* object, HV* stash, const MGVTBL* magic_table, UV 
 	return sv_bless(newRV_noinc(referent), stash);
 }
 
-MAGIC* S_sv_to_magic(pTHX_ SV* sv, const char* name, const MGVTBL* magic_table) {
-	if (!sv_derived_from(sv, name))
+MAGIC* S_sv_to_magic(pTHX_ SV* sv, const char* name, STRLEN namelen, const MGVTBL* magic_table) {
+	if (!sv_derived_from_pvn(sv, name, namelen, 0))
 		Perl_croak(aTHX_ "Object is not a %s", name);
 	MAGIC* magic = SvMAGICAL(SvRV(sv)) ? mg_findext(SvRV(sv), PERL_MAGIC_ext, magic_table) : NULL;
 	if (magic)
