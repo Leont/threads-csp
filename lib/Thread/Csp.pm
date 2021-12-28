@@ -41,12 +41,12 @@ __END__
 
 =head1 DESCRIPTION
 
-This module implements threads for perl. One crucial difference with C<threads.pm> threads is that the threads are disconnected, except by channels. It thus facilitates a message passing style of multi-threading.
+This module implements share-nothing threads for perl. One crucial difference with C<threads.pm> threads is that the original thread will not be cloned except for the arguments that you pass on thread creation. Channels are used for inter-thread communication one or more channels will nearly always be such creation arguments).
 
 Please note that B<this module is a research project>. In no way is API stability guaranteed. It is released for evaluation purposes only, not for production usage.
 
 =method spawn($module, $sub, @args)
 
-Spawn a new thread. It will load $module and then run C<$sub> (fully-qualified function name) with C<@args> as arguments.
+Spawn a new thread. It will load $module and then run C<$sub> (fully-qualified function name) with C<@args> as arguments. It returns a Thread::Csp::Promise that will finish when the thread is finished.
 
 =cut
