@@ -13,6 +13,11 @@ use Thread::Csp;
 
 __END__
 
+=head1 SYNOPSIS
+
+ my $promise = Thread::Csp->spawn('Module', 'Module::function', $input, $output);
+ $promise->get;
+
 =head1 DESCRIPTION
 
 This represents the return value of a thread, as return by spawn. B<This class is highly experimental and may disappear in the future>.
