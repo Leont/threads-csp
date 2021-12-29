@@ -19,7 +19,7 @@ __END__
  # in script.pl
  use Thread::Csp;
  my $input = Thread::Csp::Channel->new;
- my $output = Thread::Csp::cHannel->new;
+ my $output = Thread::Csp::Channel->new;
  Thread::Csp->spawn('Module', 'Module::function', $input, $output);
 
  while (<>) {
