@@ -61,7 +61,13 @@ typedef struct mthread {
 	Promise* output;
 } mthread;
 
-static void* run_thread(void* arg) {
+
+#ifdef _WIN32
+static DWORD WINAPI
+#else
+static void*
+#endif
+run_thread(void* arg) {
 	static const char* argv[] = { "perl", "-e", "0", NULL };
 	static const int argc = sizeof argv / sizeof *argv - 1;
 
