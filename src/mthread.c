@@ -140,7 +140,7 @@ Promise* S_thread_spawn(pTHX_ AV* to_run) {
 	av_unshift(to_run, 1);
 	av_store(to_run, 0, (SV*)clone_INC());
 
-	mthread* mthread = calloc(1, sizeof(mthread));
+	mthread* mthread = calloc(1, sizeof(*mthread));
 	Promise* input = promise_alloc(2);
 	mthread->input = input;
 	Promise* output = promise_alloc(2);
