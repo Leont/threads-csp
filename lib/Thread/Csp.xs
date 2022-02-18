@@ -25,7 +25,7 @@ SV* promise_get(Promise* promise)
 
 bool promise_is_finished(Promise* promise)
 
-void promise_set_notify(SV* promise, SV* handle, SV* value)
+void promise_set_notify(Promise* promise, SV* handle, SV* value)
 
 MODULE = Thread::Csp              PACKAGE = Thread::Csp::Channel  PREFIX = channel_
 

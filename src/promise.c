@@ -17,6 +17,7 @@ struct promise {
 	perl_cond condvar;
 	PerlInterpreter* owner;
 	SV* value;
+	SV* notifier;
 	enum value_type type;
 	enum state state;
 	Refcount refcount;
@@ -126,6 +127,8 @@ static int promise_destroy(pTHX_ SV* sv, MAGIC* magic) {
 				SvREFCNT_dec(promise->value);
 				break;
 		}
+		if (promise->notifier)
+			SvREFCNT_dec(promise->notifier);
 	}
 	MUTEX_UNLOCK(&promise->mutex);
 	promise_refcount_dec(promise);
@@ -142,10 +145,7 @@ static PerlIO* S_sv_to_handle(pTHX_ SV* handle) {
 }
 #define sv_to_handle(handle) S_sv_to_handle(aTHX_ handle)
 
-void S_promise_set_notify(pTHX_ SV* promise_sv, SV* handle, SV* value) {
-	MAGIC* magic = sv_to_magic(promise_sv, "Thread::Csp::Promise", &promise_magic);
-	Promise* promise = magic_to_object(magic);
-
+void S_promise_set_notify(pTHX_ Promise* promise, SV* handle, SV* value) {
 	MUTEX_LOCK(&promise->mutex);
 
 	notification_set(&promise->notification, sv_to_handle(handle), value);
@@ -154,8 +154,7 @@ void S_promise_set_notify(pTHX_ SV* promise_sv, SV* handle, SV* value) {
 
 	MUTEX_UNLOCK(&promise->mutex);
 
-	magic->mg_obj = SvREFCNT_inc(handle);
-	magic->mg_flags |= MGf_REFCOUNTED;
+	promise->notifier = SvREFCNT_inc(handle);
 }
 
 SV* S_promise_to_sv(pTHX_ Promise* promise) {
