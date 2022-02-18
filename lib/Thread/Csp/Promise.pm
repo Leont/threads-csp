@@ -30,6 +30,6 @@ This waits for the thread to finish, and will either return its value, or throw 
 
 This returns true if the promise is finished.
 
-=method set_notify($handle, $value)
+=method get_notifier()
 
-This will cause C<$value> to be written to $handle when the promise finishes, unless it's already being waited upon.
+This returns a handle that will be written to when the promise finishes, or immediately if the promise is already finished.

@@ -90,14 +90,16 @@ SV* S_channel_receive(pTHX_ Channel* channel) {
 	return result;
 }
 
-void S_channel_set_notify(pTHX_ Channel* channel, PerlIO* handle, SV* value) {
+SV* S_channel_get_notifier(pTHX_ Channel* channel) {
 	MUTEX_LOCK(&channel->data_mutex);
 
-	notification_set(&channel->notification, handle, value);
+	SV* result = notification_create(&channel->notification);
 	if (channel->state == HAS_WRITER)
 		notification_trigger(&channel->notification);
 
 	MUTEX_UNLOCK(&channel->data_mutex);
+
+	return result;
 }
 
 void channel_close(Channel* channel) {
@@ -111,6 +113,7 @@ void channel_close(Channel* channel) {
 
 void channel_refcount_dec(Channel* channel) {
 	if (refcount_dec(&channel->refcount) == 1) {
+		notification_unset(&channel->notification);
 		COND_DESTROY(&channel->data_condvar);
 		MUTEX_DESTROY(&channel->writer_mutex);
 		MUTEX_DESTROY(&channel->reader_mutex);

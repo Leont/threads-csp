@@ -145,16 +145,18 @@ static PerlIO* S_sv_to_handle(pTHX_ SV* handle) {
 }
 #define sv_to_handle(handle) S_sv_to_handle(aTHX_ handle)
 
-void S_promise_set_notify(pTHX_ Promise* promise, SV* handle, SV* value) {
+SV* S_promise_get_notifier(pTHX_ Promise* promise) {
 	MUTEX_LOCK(&promise->mutex);
 
-	notification_set(&promise->notification, sv_to_handle(handle), value);
-	if (promise->state == HAS_WRITER || promise->state == DONE)
-		notification_trigger(&promise->notification);
+	if (!promise->notifier) {
+		promise->notifier = notification_create(&promise->notification);
+		if (promise->state == HAS_WRITER || promise->state == DONE)
+			notification_trigger(&promise->notification);
+	}
 
 	MUTEX_UNLOCK(&promise->mutex);
 
-	promise->notifier = SvREFCNT_inc(handle);
+	return promise->notifier;
 }
 
 SV* S_promise_to_sv(pTHX_ Promise* promise) {
