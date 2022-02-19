@@ -5,8 +5,10 @@ Channel* channel_alloc(UV);
 void channel_send(Channel* channel, SV* message);
 SV* S_channel_receive(pTHX_ Channel* channel);
 #define channel_receive(channel) S_channel_receive(aTHX_ channel)
-SV* S_channel_get_notifier(pTHX_ Channel*);
-#define channel_get_notifier(channel) S_channel_get_notifier(aTHX_ channel)
+SV* S_channel_get_read_notifier(pTHX_ Channel*);
+#define channel_get_read_notifier(channel) S_channel_get_read_notifier(aTHX_ channel)
+SV* S_channel_get_write_notifier(pTHX_ Channel*);
+#define channel_get_write_notifier(channel) S_channel_get_write_notifier(aTHX_ channel)
 void channel_close(Channel*);
 
 void channel_refcount_dec(Channel* channel);

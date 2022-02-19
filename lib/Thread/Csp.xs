@@ -35,6 +35,8 @@ void channel_send(Channel* channel, SV* argument)
 
 SV* channel_receive(Channel* channel)
 
-void channel_get_notifier(Channel* channel)
+void channel_get_read_notifier(Channel* channel)
+
+void channel_get_write_notifier(Channel* channel)
 
 void channel_close(Channel* channel)

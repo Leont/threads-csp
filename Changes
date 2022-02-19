@@ -2,6 +2,7 @@ Revision history for Thread-Csp
 
 {{$NEXT}}
           - Replace set_notify with get_notifier
+          - Split Channel notifier into read and write
 
 0.005     2022-01-07 14:46:45+01:00 Europe/Amsterdam
           - Improve compatibility with older perl versions

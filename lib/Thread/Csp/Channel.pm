@@ -37,9 +37,13 @@ This sends a value over the channel. It will block until another thread is prepa
 
 This receives a value from the channel. It will block until another thread is prepared to send the value.
 
-=method get_notifier()
+=method get_read_notifier()
 
-This will return a filehandle that will be written to when a value has been send to the channel.
+This will return a filehandle that one byte will be written to when a value has been send to the channel.
+
+=method get_write_notifier()
+
+This will return a filehandle that one byte will be written to when a value is desired to the channel.
 
 =method close()
 
