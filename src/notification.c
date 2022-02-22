@@ -25,7 +25,11 @@ SV* S_notification_create(pTHX_ Notification* notification) {
 	if (*notification != -1)
 		Perl_croak(aTHX_ "Notification already set");
 	int fds[2];
+#ifdef HAS_PIPE
 	if (pipe(fds) == -1)
+#else
+	if (my_socketpair(AF_UNIX, SOCK_STREAM, 0, fds) == -1)
+#endif
 		Perl_croak(aTHX_ "Could not pipe: %s", strerror(errno));
 	*notification = fds[1];
 	return io_fdopen(fds[0], "Thread::Csp");

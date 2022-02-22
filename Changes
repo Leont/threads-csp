@@ -1,6 +1,7 @@
 Revision history for Thread-Csp
 
 {{$NEXT}}
+          - Use socketpair when pipe is not available
 
 0.006     2022-02-19 19:05:31+01:00 Europe/Amsterdam
           - Replace set_notify with get_notifier
