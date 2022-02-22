@@ -30,6 +30,6 @@ This waits for the thread to finish, and will either return its value, or throw 
 
 This returns true if the promise is finished.
 
-=method get_notifier()
+=method finished_fh()
 
-This returns a handle that will be written to when the promise finishes, or immediately if the promise is already finished.
+This returns a handle that one byte will be written to when the promise finishes (or immediately if the promise is already finished).

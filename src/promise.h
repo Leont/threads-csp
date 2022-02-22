@@ -8,8 +8,8 @@ void promise_set_value(Promise* promise, SV* value);
 void promise_set_exception(Promise* promise, SV* value);
 bool promise_is_finished(Promise*);
 void promise_refcount_dec(Promise* promise);
-SV* S_promise_get_notifier(pTHX_ Promise* promise);
-#define promise_get_notifier(promise) S_promise_get_notifier(aTHX_ promise)
+SV* S_promise_finished_fh(pTHX_ Promise* promise);
+#define promise_finished_fh(promise) S_promise_finished_fh(aTHX_ promise)
 
 SV* S_promise_to_sv(pTHX_ Promise* promise);
 #define promise_to_sv(promise) S_promise_to_sv(aTHX_ promise)

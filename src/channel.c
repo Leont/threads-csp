@@ -93,7 +93,7 @@ SV* S_channel_receive(pTHX_ Channel* channel) {
 	return result;
 }
 
-SV* S_channel_get_read_notifier(pTHX_ Channel* channel) {
+SV* S_channel_receive_ready_fh(pTHX_ Channel* channel) {
 	MUTEX_LOCK(&channel->data_mutex);
 
 	SV* result = notification_create(&channel->write_notification);
@@ -105,7 +105,7 @@ SV* S_channel_get_read_notifier(pTHX_ Channel* channel) {
 	return result;
 }
 
-SV* S_channel_get_write_notifier(pTHX_ Channel* channel) {
+SV* S_channel_send_ready_fh(pTHX_ Channel* channel) {
 	MUTEX_LOCK(&channel->data_mutex);
 
 	SV* result = notification_create(&channel->write_notification);
@@ -120,6 +120,7 @@ SV* S_channel_get_write_notifier(pTHX_ Channel* channel) {
 void channel_close(Channel* channel) {
 	MUTEX_LOCK(&channel->data_mutex);
 
+	notification_unset(&channel->read_notification);
 	channel->state = CLOSED;
 	COND_SIGNAL(&channel->data_condvar);
 

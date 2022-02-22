@@ -37,7 +37,7 @@ subtest 'Fourth', sub {
 	my $q = Thread::Csp::Channel->new;
 	my $r = Thread::Csp->spawn('Basic', 'Basic::basic', $q, 7);
 
-	my $in = $r->get_notifier;
+	my $in = $r->finished_fh;
 	ok(!$r->is_finished, 'is not finished');
 	$q->send(1);
 	$q->receive;

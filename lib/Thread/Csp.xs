@@ -25,7 +25,7 @@ SV* promise_get(Promise* promise)
 
 bool promise_is_finished(Promise* promise)
 
-SV* promise_get_notifier(Promise* promise)
+SV* promise_finished_fh(Promise* promise)
 
 MODULE = Thread::Csp              PACKAGE = Thread::Csp::Channel  PREFIX = channel_
 
@@ -35,8 +35,8 @@ void channel_send(Channel* channel, SV* argument)
 
 SV* channel_receive(Channel* channel)
 
-void channel_get_read_notifier(Channel* channel)
+void channel_receive_ready_fh(Channel* channel)
 
-void channel_get_write_notifier(Channel* channel)
+void channel_send_ready_fh(Channel* channel)
 
 void channel_close(Channel* channel)

@@ -145,7 +145,7 @@ static PerlIO* S_sv_to_handle(pTHX_ SV* handle) {
 }
 #define sv_to_handle(handle) S_sv_to_handle(aTHX_ handle)
 
-SV* S_promise_get_notifier(pTHX_ Promise* promise) {
+SV* S_promise_finished_fh(pTHX_ Promise* promise) {
 	MUTEX_LOCK(&promise->mutex);
 
 	if (!promise->notifier) {
