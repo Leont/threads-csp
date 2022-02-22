@@ -114,8 +114,8 @@ void promise_refcount_dec(Promise* promise) {
 static int promise_destroy(pTHX_ SV* sv, MAGIC* magic) {
 	Promise* promise = (Promise*)magic->mg_ptr;
 	MUTEX_LOCK(&promise->mutex);
+	notification_unset(&promise->notification);
 	if (promise->owner == aTHX) {
-		notification_unset(&promise->notification);
 		switch(promise->state) {
 			case HAS_WRITER:
 				COND_SIGNAL(&promise->condvar);
