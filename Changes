@@ -1,6 +1,7 @@
 Revision history for Thread-Csp
 
 {{$NEXT}}
+          - Revert using socketpair
 
 0.007     2022-02-22 15:08:28+01:00 Europe/Amsterdam
           - Use socketpair when pipe is not available
