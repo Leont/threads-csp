@@ -8,8 +8,6 @@
 
 #define slurp_arguments(offset) av_make(items - offset, PL_stack_base + ax + offset)
 
-typedef PerlIO* OutputStream;
-
 MODULE = Thread::Csp              PACKAGE = Thread::Csp  PREFIX = thread_
 
 BOOT:
