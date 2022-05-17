@@ -35,8 +35,8 @@ void channel_send(Channel* channel, SV* argument)
 
 SV* channel_receive(Channel* channel)
 
-void channel_receive_ready_fh(Channel* channel)
+SV* channel_receive_ready_fh(Channel* channel)
 
-void channel_send_ready_fh(Channel* channel)
+SV* channel_send_ready_fh(Channel* channel)
 
 void channel_close(Channel* channel)
