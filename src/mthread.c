@@ -20,20 +20,9 @@
 
 static Refcount thread_counter;
 
-static int (*old_hook)(pTHX);
-
-static int S_threadhook(pTHX) {
-	int result = thread_counter > 1 ? 1 : old_hook(aTHX);
-	refcount_destroy(&result);
-	return result;
-}
-
 void global_init(pTHX) {
 	if (!refcount_inited(&thread_counter)) {
 		refcount_init(&thread_counter, 1);
-
-		old_hook = PL_threadhook;
-		PL_threadhook = S_threadhook;
 
 		mark_clonable_pvs("Thread::Csp::Channel");
 	}
