@@ -1,6 +1,8 @@
 Revision history for Thread-CSP
 
 {{$NEXT}}
+
+0.010     2023-05-09 15:08:24+02:00 Europe/Amsterdam
           - Rename Thread::Csp to Thread::CSP
 
 0.009     2022-08-23 12:43:58+02:00 Europe/Amsterdam
