@@ -1,11 +1,11 @@
-package Thread::Csp::Channel;
+package Thread::CSP::Channel;
 
 use strict;
 use warnings;
 
 use 5.008001;
 
-use Thread::Csp;
+use Thread::CSP;
 
 1;
 
@@ -15,7 +15,7 @@ __END__
 
 =head1 SYNOPSIS
 
- my $c = Thread::Csp::Channel->new;
+ my $c = Thread::CSP::Channel->new;
  
  $c->send("value");
 

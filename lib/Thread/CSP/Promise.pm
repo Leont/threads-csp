@@ -1,11 +1,11 @@
-package Thread::Csp::Promise;
+package Thread::CSP::Promise;
 
 use strict;
 use warnings;
 
 use 5.008001;
 
-use Thread::Csp;
+use Thread::CSP;
 
 1;
 
@@ -15,7 +15,7 @@ __END__
 
 =head1 SYNOPSIS
 
- my $promise = Thread::Csp->spawn('Module', 'Module::function', $input, $output);
+ my $promise = Thread::CSP->spawn('Module', 'Module::function', $input, $output);
  $promise->get;
 
 =head1 DESCRIPTION

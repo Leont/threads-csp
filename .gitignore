@@ -4,7 +4,7 @@
 *.swo
 *.tdy
 *.tar.gz
-Thread-Csp-*
+Thread-CSP-*
 *.o
 lib/**/*.c
 Build

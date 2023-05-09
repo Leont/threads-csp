@@ -160,9 +160,9 @@ SV* S_promise_finished_fh(pTHX_ Promise* promise) {
 }
 
 SV* S_promise_to_sv(pTHX_ Promise* promise) {
-	return object_to_sv(promise, gv_stashpvs("Thread::Csp::Promise", 0), &promise_magic, 0);
+	return object_to_sv(promise, gv_stashpvs("Thread::CSP::Promise", 0), &promise_magic, 0);
 }
 
 Promise* S_sv_to_promise(pTHX_ SV* sv) {
-	return sv_to_object(sv, "Thread::Csp::Promise", &promise_magic);
+	return sv_to_object(sv, "Thread::CSP::Promise", &promise_magic);
 }

@@ -17,7 +17,7 @@ SV* S_notification_create(pTHX_ Notification* notification) {
 	if (PerlProc_pipe(fds) == -1)
 		Perl_croak(aTHX_ "Could not pipe: %s", strerror(errno));
 	*notification = fds[1];
-	return io_fdopen(fds[0], "Thread::Csp");
+	return io_fdopen(fds[0], "Thread::CSP");
 }
 
 void notification_trigger(Notification* notification) {

@@ -4,12 +4,12 @@ use Module::Build;
 use Config;
 
 if (not $Config{useithreads}) {
-    print STDERR "Can't use threads::csp without threading support";
+    print STDERR "Can't use Threads::CSP without threading support";
     exit 0;
 }
 
 my $builder = Module::Build->new(
-  module_name  => 'Thread::Csp',
+  module_name  => 'Thread::CSP',
   c_source     => 'src',
 ##{ $plugin->get_prereqs ##}
 );

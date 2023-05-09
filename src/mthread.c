@@ -24,7 +24,7 @@ void global_init(pTHX) {
 	if (!refcount_inited(&thread_counter)) {
 		refcount_init(&thread_counter, 1);
 
-		mark_clonable_pvs("Thread::Csp::Channel");
+		mark_clonable_pvs("Thread::CSP::Channel");
 	}
 	if (!PL_perl_destruct_level)
 		PL_perl_destruct_level = 1;
@@ -84,7 +84,7 @@ run_thread(void* arg) {
 	perl_parse(my_perl, xs_init, argc, (char**)argv, NULL);
 
 	TRY {
-		mark_clonable_pvs("Thread::Csp::Channel");
+		mark_clonable_pvs("Thread::CSP::Channel");
 
 		AV* at_inc = (AV*)sv_2mortal(promise_get(at_inc_promise));
 		promise_refcount_dec(at_inc_promise);
@@ -92,7 +92,7 @@ run_thread(void* arg) {
 		SvREFCNT_dec(GvAV(PL_incgv));
 		GvAV(PL_incgv) = at_inc;
 
-		load_module(PERL_LOADMOD_NOIMPORT, newSVpvs("Thread::Csp"), NULL);
+		load_module(PERL_LOADMOD_NOIMPORT, newSVpvs("Thread::CSP"), NULL);
 
 		AV* to_run = (AV*)sv_2mortal(promise_get(arguments));
 		SV* module = *av_fetch(to_run, 0, FALSE);
