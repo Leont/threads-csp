@@ -24,7 +24,7 @@ struct promise {
 	Notification notification;
 };
 
-Promise* promise_alloc(UV refcount) {
+Promise* S_promise_alloc(pTHX_ UV refcount) {
 	Promise* result = calloc(1, sizeof(Promise));
 	MUTEX_INIT(&result->mutex);
 	COND_INIT(&result->condvar);
@@ -102,7 +102,7 @@ bool promise_is_finished(Promise* promise) {
 	return result;
 }
 
-void promise_refcount_dec(Promise* promise) {
+void S_promise_refcount_dec(pTHX_ Promise* promise) {
 	if (refcount_dec(&promise->refcount) == 1) {
 		COND_DESTROY(&promise->condvar);
 		MUTEX_DESTROY(&promise->mutex);

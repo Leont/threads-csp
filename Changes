@@ -1,6 +1,7 @@
 Revision history for Thread-CSP
 
 {{$NEXT}}
+          - Add fallback refcount implementations
 
 0.010     2023-05-09 15:08:24+02:00 Europe/Amsterdam
           - Rename Thread::Csp to Thread::CSP
