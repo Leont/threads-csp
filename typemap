@@ -1,13 +1,3 @@
 TYPEMAP
-Channel* T_CHANNEL
-Promise* T_PROMISE
-
-INPUT
-T_CHANNEL
-	$var = sv_to_channel($arg)
-T_PROMISE
-	$var = sv_to_promise($arg)
-
-OUTPUT
-T_PROMISE
-	$arg = promise_to_sv($var);
+Thread::CSP::Channel T_MAGICEXT
+Thread::CSP::Promise T_MAGICEXT
