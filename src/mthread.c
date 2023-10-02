@@ -95,6 +95,7 @@ run_thread(void* arg) {
 		load_module(PERL_LOADMOD_NOIMPORT, newSVpvs("Thread::CSP"), NULL);
 
 		AV* to_run = (AV*)sv_2mortal(promise_get(arguments));
+		promise_refcount_dec(arguments);
 		SV* module = *av_fetch(to_run, 0, FALSE);
 		load_module(PERL_LOADMOD_NOIMPORT, SvREFCNT_inc(module), NULL);
 
