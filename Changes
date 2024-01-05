@@ -1,6 +1,7 @@
 Revision history for Thread-CSP
 
 {{$NEXT}}
+          - Eliminate thread counter
 
 0.012     2024-01-05 02:07:17+01:00 Europe/Brussels
           - Switch to ExtUtils::Typemaps::MagicExt
