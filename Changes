@@ -1,6 +1,7 @@
 Revision history for Thread-CSP
 
 {{$NEXT}}
+          - Adapt ppport include to Magic typemap
 
 0.013     2024-01-05 18:36:11+01:00 Europe/Brussels
           - Eliminate thread counter
