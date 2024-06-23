@@ -154,6 +154,7 @@ struct promise* S_thread_spawn(pTHX_ AV* to_run) {
 	promise_refcount_dec(at_inc);
 	promise_set_value(arguments, (SV*)to_run);
 	promise_refcount_dec(arguments);
+	SvREFCNT_dec(to_run);
 
 	return output;
 }
