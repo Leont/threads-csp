@@ -140,7 +140,8 @@ void S_channel_refcount_dec(pTHX_ struct channel* channel) {
 }
 
 static int channel_magic_destroy(pTHX_ SV* sv, MAGIC* magic) {
-	channel_refcount_dec((struct channel*)magic->mg_ptr);
+	struct channel* object = (struct channel*)magic->mg_ptr;
+	channel_refcount_dec(object);
 	return 0;
 }
 
@@ -150,4 +151,7 @@ static int channel_magic_dup(pTHX_ MAGIC* magic, CLONE_PARAMS* param) {
 	return 0;
 }
 
-const MGVTBL Thread__CSP__Channel_magic = { 0, 0, 0, 0, channel_magic_destroy, 0, channel_magic_dup };
+const MGVTBL Thread__CSP__Channel_magic = {
+	.svt_dup  = channel_magic_dup,
+	.svt_free = channel_magic_destroy
+};

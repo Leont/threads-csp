@@ -135,7 +135,10 @@ static int promise_destroy(pTHX_ SV* sv, MAGIC* magic) {
 	return 0;
 }
 
-const MGVTBL Thread__CSP__Promise_magic = { 0, 0, 0, 0, promise_destroy };
+const MGVTBL Thread__CSP__Promise_magic = {
+	.svt_free = promise_destroy
+};
+
 
 static PerlIO* S_sv_to_handle(pTHX_ SV* handle) {
 	if (!SvROK(handle) || SvTYPE(SvRV(handle)) != SVt_PVGV)
