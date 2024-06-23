@@ -1,6 +1,7 @@
 Revision history for Thread-CSP
 
 {{$NEXT}}
+          - Use the shared memory pool for promise and channel allocation
 
 0.014     2024-05-19 18:54:50+02:00 Europe/Brussels
           - Adapt ppport include to Magic typemap

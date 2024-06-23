@@ -25,7 +25,7 @@ struct promise {
 };
 
 struct promise* S_promise_alloc(pTHX_ UV refcount) {
-	struct promise* result = calloc(1, sizeof(struct promise));
+	struct promise* result = PerlMemShared_calloc(1, sizeof(struct promise));
 	MUTEX_INIT(&result->mutex);
 	COND_INIT(&result->condvar);
 	refcount_init(&result->refcount, refcount);
@@ -107,7 +107,7 @@ void S_promise_refcount_dec(pTHX_ struct promise* promise) {
 		COND_DESTROY(&promise->condvar);
 		MUTEX_DESTROY(&promise->mutex);
 		refcount_destroy(&promise->refcount);
-		free(promise);
+		PerlMemShared_free(promise);
 	}
 }
 

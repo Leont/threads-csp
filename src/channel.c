@@ -30,7 +30,7 @@ struct channel {
 };
 
 struct channel* S_channel_alloc(pTHX_ UV refcount) {
-	struct channel* ret = calloc(1, sizeof(struct channel));
+	struct channel* ret = PerlMemShared_calloc(1, sizeof(struct channel));
 	MUTEX_INIT(&ret->data_mutex);
 	MUTEX_INIT(&ret->reader_mutex);
 	MUTEX_INIT(&ret->writer_mutex);
@@ -135,7 +135,7 @@ void S_channel_refcount_dec(pTHX_ struct channel* channel) {
 		MUTEX_DESTROY(&channel->writer_mutex);
 		MUTEX_DESTROY(&channel->reader_mutex);
 		MUTEX_DESTROY(&channel->data_mutex);
-		free(channel);
+		PerlMemShared_free(channel);
 	}
 }
 
