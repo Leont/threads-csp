@@ -1,3 +1,4 @@
 TYPEMAP
 Thread::CSP::Channel T_MAGICEXT
 Thread::CSP::Promise T_MAGICEXT
+AV* T_SLURP_AV
