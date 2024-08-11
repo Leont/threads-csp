@@ -112,6 +112,8 @@ run_thread(void* arg) {
 struct promise* S_thread_spawn(pTHX_ AV* to_run) {
 	static const size_t stack_size = 512 * 1024;
 
+	sv_2mortal((SV*)to_run);
+
 	mthread* mthread = calloc(1, sizeof(*mthread));
 	struct promise* at_inc = promise_alloc(2);
 	mthread->at_inc = at_inc;
@@ -154,7 +156,6 @@ struct promise* S_thread_spawn(pTHX_ AV* to_run) {
 	promise_refcount_dec(at_inc);
 	promise_set_value(arguments, (SV*)to_run);
 	promise_refcount_dec(arguments);
-	SvREFCNT_dec(to_run);
 
 	return output;
 }
