@@ -103,10 +103,10 @@ static inline void S_refcount_destroy(pTHX_ Refcount* refcount) {
 typedef unsigned long Refcount;
 
 #    define refcount_inited(counter) (*(counter) != 0)
-#    define refcount_load(counter) *(counter)
+#    define refcount_load(counter) (*(counter))
 #    define refcount_init(counter, value) do { *(counter) = (value); } while (0)
-#    define refcount_inc(counter) ((*counter)++)
-#    define refcount_dec(counter) ((*counter)--)
+#    define refcount_inc(counter) ((*(counter))++)
+#    define refcount_dec(counter) ((*(counter))--)
 #    define refcount_destroy(count) ((void)0)
 
 #  endif
