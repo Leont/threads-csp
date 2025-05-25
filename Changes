@@ -1,6 +1,8 @@
 Revision history for Thread-CSP
 
 {{$NEXT}}
+
+0.015     2025-05-25 14:19:18+02:00 Europe/Brussels
           - Use the shared memory pool for promise and channel allocation
           - Fix leak of thread arguments
           - Correctly initialize CLONE_PARAMS
