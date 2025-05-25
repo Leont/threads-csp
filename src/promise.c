@@ -16,6 +16,7 @@ struct promise {
 	perl_mutex mutex;
 	perl_cond condvar;
 	PerlInterpreter* owner;
+	PerlInterpreter* from;
 	SV* value;
 	SV* notifier;
 	enum value_type type;
@@ -43,7 +44,7 @@ SV* S_promise_get(pTHX_ struct promise* promise) {
 			do COND_WAIT(&promise->condvar, &promise->mutex);
 			while (promise->state != HAS_BOTH);
 		case HAS_WRITER:
-			promise->value = clone_value(promise->value);
+			promise->value = clone_value(promise->value, promise->from);
 			promise->state = DONE;
 			promise->owner = aTHX;
 			COND_SIGNAL(&promise->condvar);
@@ -65,12 +66,13 @@ SV* S_promise_get(pTHX_ struct promise* promise) {
 		return result;
 }
 
-static void promise_set(struct promise* promise, SV* value, enum value_type type) {
+static void S_promise_set(pTHX_ struct promise* promise, SV* value, enum value_type type) {
 	MUTEX_LOCK(&promise->mutex);
 
 	if (promise->state != DONE && promise->state != ABANDONED) {
 		promise->value = value;
 		promise->type = type;
+		promise->from = aTHX;
 
 		if (promise->state == HAS_READER) {
 			promise->state = HAS_BOTH;
@@ -84,14 +86,16 @@ static void promise_set(struct promise* promise, SV* value, enum value_type type
 
 		do COND_WAIT(&promise->condvar, &promise->mutex);
 		while (promise->state != DONE && promise->state != ABANDONED);
+		promise->from = NULL;
 	}
 	MUTEX_UNLOCK(&promise->mutex);
 }
+#define promise_set(promise, value, type) S_promise_set(aTHX_ promise, value, type)
 
-void promise_set_value(struct promise* promise, SV* value) {
+void S_promise_set_value(pTHX_ struct promise* promise, SV* value) {
 	promise_set(promise, value, VALUE);
 }
-void promise_set_exception(struct promise* promise, SV* value) {
+void S_promise_set_exception(pTHX_ struct promise* promise, SV* value) {
 	promise_set(promise, value, EXCEPTION);
 }
 

@@ -25,6 +25,7 @@ struct channel {
 	Refcount refcount;
 	enum state state;
 	SV* message;
+	PerlInterpreter* from;
 	Notification read_notification;
 	Notification write_notification;
 };
@@ -41,11 +42,12 @@ struct channel* S_channel_alloc(pTHX_ UV refcount) {
 	return ret;
 }
 
-void channel_send(struct channel* channel, SV* message) {
+void S_channel_send(pTHX_ struct channel* channel, SV* message) {
 	MUTEX_LOCK(&channel->writer_mutex);
 	MUTEX_LOCK(&channel->data_mutex);
 
 	channel->message = message;
+	channel->from = aTHX;
 	notification_trigger(&channel->read_notification);
 	if (channel->state == HAS_READER) {
 		channel->state = HAS_MESSAGE;
@@ -58,6 +60,7 @@ void channel_send(struct channel* channel, SV* message) {
 
 	do COND_WAIT(&channel->data_condvar, &channel->data_mutex);
 	while (channel->state != HAS_NOTHING && channel->state != HAS_READER && channel->state != CLOSED);
+	channel->from = NULL;
 
 	MUTEX_UNLOCK(&channel->data_mutex);
 	MUTEX_UNLOCK(&channel->writer_mutex);
@@ -78,7 +81,7 @@ SV* S_channel_receive(pTHX_ struct channel* channel) {
 
 	SV* result;
 	if (channel->state != CLOSED) {
-		result = clone_value(channel->message);
+		result = clone_value(channel->message, channel->from);
 		channel->state = HAS_NOTHING;
 	}
 	else
